@@ -17,8 +17,6 @@
 package com.rzm.myeventbus;
 
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -34,7 +32,6 @@ public @interface Subscribe {
 
     /**
      * If true, delivers the most recent sticky event (posted with
-     * {@link EventBus#postSticky(Object)}) to this subscriber (if event available).
      */
     boolean sticky() default false;
 

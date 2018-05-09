@@ -15,8 +15,6 @@
  */
 package com.rzm.myeventbus;
 
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.lang.reflect.Method;
 
 /** Used internally by EventBus and generated subscriber indexes. */

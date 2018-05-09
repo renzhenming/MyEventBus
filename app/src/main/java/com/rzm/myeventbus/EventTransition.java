@@ -1,5 +1,8 @@
 package com.rzm.myeventbus;
 
+import android.os.Handler;
+import android.os.Looper;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -119,6 +122,68 @@ public class EventTransition {
                     size--;
                 }
             }
+        }
+    }
+
+    public void post(Object object) {
+        //根据post传递的参数class类型，找到相对应的方法，通过反射执行，注意线程切换
+        if (object == null){
+            throw new NullPointerException("cannot be null");
+        }
+        Class<?> clazz = object.getClass();
+        CopyOnWriteArrayList<Subscription> subscriptions = mSubscriptionsByEventType.get(clazz);
+        if (subscriptions != null){
+            for (Subscription subscription : subscriptions) {
+                executeMethod(subscription,object);
+            }
+        }
+    }
+
+    private void executeMethod(final Subscription subscription, final Object object) {
+        ThreadMode threadMode = subscription.subscriberMethod.threadMode;
+        //判断是不是主线程
+        boolean mainThread = Looper.getMainLooper() == Looper.myLooper();
+        switch (threadMode){
+            case MAIN:
+                if (mainThread){
+                    invokeMethod(subscription,object);
+                }else{
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            invokeMethod(subscription,object);
+                        }
+                    });
+                }
+                break;
+            case ASYNC:
+                //异步执行
+                AsyncTransfer.enqueue(subscription,object);
+                break;
+            case POSTING:
+                //执行在当前线程
+                invokeMethod(subscription,object);
+                break;
+            case BACKGROUND:
+                if (!mainThread){
+                    invokeMethod(subscription,object);
+                }else{
+                    AsyncTransfer.enqueue(subscription,object);
+                }
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    private void invokeMethod(Subscription subscription, Object object) {
+        try {
+            subscription.subscriberMethod.method.invoke(subscription.subscriber,object);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
         }
     }
 }
