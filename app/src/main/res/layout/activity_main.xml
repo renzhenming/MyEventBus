@@ -19,5 +19,11 @@
         android:layout_height="wrap_content"
         android:text="Hello World!"
         />
-
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        />
 </LinearLayout>
